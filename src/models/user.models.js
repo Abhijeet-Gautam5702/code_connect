@@ -28,13 +28,8 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    profilePicture: {
-      type: String, // from Cloudinary
-      required: true,
-    },
-    avatar: {
-      type: String, // from Cloudinary
-      required: true,
+    refreshToken: {
+      type: String,
     },
     registeredEvents: [
       {
