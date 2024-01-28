@@ -90,9 +90,9 @@ userSchema.methods.generateAccessToken = async function () {
 };
 
 // MONGOOSE METHOD: Refresh Token Generator
-userSchema.methods.generateAccessToken = async function () {
+userSchema.methods.generateRefreshToken = async function () {
   try {
-    const accessToken = await jwt.sign(
+    const refreshToken = await jwt.sign(
       {
         _id: this._id,
         email: this.email,
@@ -103,7 +103,7 @@ userSchema.methods.generateAccessToken = async function () {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
       }
     );
-    return accessToken;
+    return refreshToken;
   } catch (error) {
     console.log(`REFRESH TOKEN GENERATION FAILED | ${error}`);
     throw error;
