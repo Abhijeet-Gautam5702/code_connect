@@ -13,7 +13,7 @@ const userRegister = asyncHandler(async (req, res) => {
   // Validate whether any of the datafields is empty or invalid
   if (
     [username, email, password, fullname].some(
-      (field) => !field || (field && field === "")
+      (field) => !field || (field && field.trim() === "")
     )
   ) {
     throw new customApiError("One or more required fields is empty", 400);
@@ -45,18 +45,81 @@ const userRegister = asyncHandler(async (req, res) => {
   }
 
   // Send response to the client
-  res.status(200).json(
-    new customApiResponse("User registration successful", 200, createdUser)
-  );
+  res
+    .status(200)
+    .json(
+      new customApiResponse("User registration successful", 200, createdUser)
+    );
 });
 
 /*
     USER LOGIN CONTROLLER
 */
 const userLogin = asyncHandler(async (req, res) => {
-  res.json({
-    message: "User Logged In",
+  // Get username (or email) and password (must) from the user
+  const { email, password, username } = req.body;
+
+  // Check if the username or email along with password is provided by the user
+  if (!(email || username)) {
+    throw new customApiError("Either email or the username is required", 400);
+  }
+  if (!password || password?.trim() === "") {
+    throw new customApiError("Password (required field) is not provided", 401);
+  }
+
+  // Check if the user exists in the database
+  const user = await User.findOne({
+    $or: [{ email }, { username }],
   });
+  if (!user) {
+    throw new customApiError(
+      "User with the given credentials doesn't exist",
+      404
+    );
+  }
+
+  // Check if the password is correct
+  const isPasswordCorrect = await user.validatePassword(password);
+  if (!isPasswordCorrect) {
+    throw new customApiError("Incorrect password", 401);
+  }
+
+  // Generate access and refresh tokens for the user
+  const refreshToken = await user.generateRefreshToken();
+  const accessToken = await user.generateAccessToken();
+
+  // Give refresh token to the user document in the database
+  let updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    {
+      refreshToken: refreshToken,
+    },
+    { new: true }
+  );
+  if (!updatedUser.refreshToken) {
+    throw new customApiError("User could not be logged in from our end", 500);
+  }
+
+  const userData = await User.findById(user._id).select(
+    "-refreshToken -password"
+  );
+
+  // Send the response and cookies containing the data and the access tokens
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+  };
+  res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new customApiResponse("User logged in successfully", 200, {
+        user: userData,
+        refreshToken,
+        accessToken,
+      })
+    );
 });
 
 export { userRegister, userLogin };
