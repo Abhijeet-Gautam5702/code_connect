@@ -3,6 +3,11 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import { customApiError } from "../utils/customApiError.utils.js";
 import { customApiResponse } from "../utils/customApiResponse.utils.js";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+};
+
 /*
     USER REGISTRATION CONTROLLER
 */
@@ -105,10 +110,6 @@ const userLogin = asyncHandler(async (req, res) => {
   );
 
   // Send the response and cookies containing the data and the access tokens
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-  };
   res
     .status(200)
     .cookie("accessToken", accessToken, cookieOptions)
@@ -122,4 +123,43 @@ const userLogin = asyncHandler(async (req, res) => {
     );
 });
 
-export { userRegister, userLogin };
+/*
+  USER LOGOUT CONTROLLER
+*/
+/*  
+  User can only logout of the website if he is logged in. That means the logout route is an authenticated route. Hence there must be a middleware to verify whether the user is authorized to hit the logout-endpoint.
+*/
+const userLogout = asyncHandler(async (req, res) => {
+  // Authenticate the user by the Auth Middleware
+  // Get the userId from the `req.user` object injected by Auth Middleware
+  const userId = req.user._id;
+
+  // Clear the refresh token of the user
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      refreshToken: "",
+    },
+    { new: true } // this ensures that the updated/modified document is returned by the query
+  );
+  if (user.refreshToken) {
+    throw new customApiError(
+      "User could not be logged out successfully from our end",
+      500
+    );
+  }
+
+  // Clear the access token and refresh token from the cookies
+  // Send response to the user
+  res
+    .status(200)
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
+    .json(
+      new customApiResponse("User logged out successfully", 200, {
+        user: user,
+      })
+    );
+});
+
+export { userRegister, userLogin, userLogout };
