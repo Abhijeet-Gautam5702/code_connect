@@ -9,7 +9,31 @@ const cookieOptions = {
 };
 
 /*
-    USER REGISTRATION CONTROLLER
+  GET-USER CONTROLLER
+*/
+const getLoggedInUser = asyncHandler(async (req, res) => {
+  // Authorize the user by the Auth Middleware
+
+  // Get user instance from req.user object injected by the Auth middleware
+  const userId = req.user._id;
+
+  // Remove senstitive information and send success response to the user
+  const user = await User.findById(userId).select("-password -refreshToken");
+  res
+    .status(200)
+    .json(
+      new customApiResponse(
+        "Currently Logged-In user successfully fetched",
+        200,
+        user
+      )
+    );
+});
+
+/*------------------------- USER FUNCTIONALITY CONTROLLERS -------------------------*/
+
+/*
+    USER-REGISTRATION CONTROLLER
 */
 const userRegister = asyncHandler(async (req, res) => {
   // Get data from the client using body
@@ -58,7 +82,7 @@ const userRegister = asyncHandler(async (req, res) => {
 });
 
 /*
-    USER LOGIN CONTROLLER
+    USER-LOGIN CONTROLLER
 */
 const userLogin = asyncHandler(async (req, res) => {
   // Get username (or email) and password (must) from the user
@@ -124,13 +148,13 @@ const userLogin = asyncHandler(async (req, res) => {
 });
 
 /*
-  USER LOGOUT CONTROLLER
+  USER-LOGOUT CONTROLLER
 */
 /*  
   User can only logout of the website if he is logged in. That means the logout route is an authenticated route. Hence there must be a middleware to verify whether the user is authorized to hit the logout-endpoint.
 */
 const userLogout = asyncHandler(async (req, res) => {
-  // Authenticate the user by the Auth Middleware
+  // Authorize the user by the Auth Middleware
   // Get the userId from the `req.user` object injected by Auth Middleware
   const userId = req.user._id;
 
@@ -162,4 +186,99 @@ const userLogout = asyncHandler(async (req, res) => {
     );
 });
 
-export { userRegister, userLogin, userLogout };
+/*------------------------- USER ACCOUNT UPDATE CONTROLLERS -------------------------*/
+
+/*
+  USER-PASSWORD-CHANGE CONTROLLER
+*/
+const changePassword = asyncHandler(async (req, res) => {
+  // Authorize the user by the Auth Middleware
+
+  // Get the password from the user
+  const oldPassword = req.body.oldPassword?.trim();
+  const newPassword = req.body.newPassword?.trim();
+  if (!oldPassword || !newPassword) {
+    throw new customApiError("One or more fields are empty", 422);
+  }
+  if (oldPassword === newPassword) {
+    throw new customApiError(
+      "New password cannot be same as the old password",
+      400
+    );
+  }
+
+  // Get the user instance from req.user injected by the Auth Middleware
+  const user = req.user;
+  const isPasswordCorrect = await user.validatePassword(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new customApiError("Invlaid old password", 401);
+  }
+
+  // Update the password
+  user.password = newPassword;
+  await user.save();
+
+  // Send success response to user
+  res
+    .status(200)
+    .json(new customApiResponse("User Password update successfully", 200, {}));
+});
+
+/*
+  USER-OTHER-DETAILS-UPDATE CONTROLLER
+*/
+const changeOtherUserAccountDetails = asyncHandler(async (req, res) => {
+  // Authorize the user by the Auth Middleware
+
+  // Get details from the user
+  const email = req.body.email?.trim();
+  const fullname = req.body.fullname?.trim();
+  if (!email && !fullname) {
+    throw new customApiError("At least one field is required", 422);
+  }
+
+  // Get user instance from the req.user object injected by Auth middleware
+  const user = req.user;
+
+  // Update the details in the user instance and save the document
+  user.email = email || user.email;
+  user.fullname = fullname || user.fullname;
+  await user.save();
+
+  // Check if the user was updated correctly
+  const updatedUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+  if (!updatedUser) {
+    throw new customApiError(
+      "User details could not be udpated successfully | User not found",
+      404
+    );
+  }
+  if (fullname && updatedUser.fullname !== fullname) {
+    throw new customApiError("User fullname could not be updated", 500);
+  }
+  if (email && updatedUser.email !== email) {
+    throw new customApiError("User email could not be updated", 500);
+  }
+
+  // Send success response to the user
+  res
+    .status(200)
+    .json(
+      new customApiResponse(
+        "User account details updated successfully",
+        200,
+        updatedUser
+      )
+    );
+});
+
+export {
+  userRegister,
+  userLogin,
+  userLogout,
+  changePassword,
+  changeOtherUserAccountDetails,
+  getLoggedInUser,
+};
