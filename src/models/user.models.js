@@ -74,7 +74,6 @@ userSchema.methods.generateAccessToken = async function () {
     const accessToken = await jwt.sign(
       {
         _id: this._id,
-        email: this.email,
         username: this.username,
       },
       process.env.ACCESS_TOKEN_SECRET,
@@ -95,7 +94,6 @@ userSchema.methods.generateRefreshToken = async function () {
     const refreshToken = await jwt.sign(
       {
         _id: this._id,
-        email: this.email,
         username: this.username,
       },
       process.env.REFRESH_TOKEN_SECRET,
