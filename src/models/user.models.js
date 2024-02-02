@@ -31,18 +31,6 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
-    registeredEvents: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Event",
-      },
-    ],
-    organizedEvents: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Event",
-      },
-    ],
   },
   { timestamps: true }
 );

@@ -51,18 +51,9 @@ const eventSchema = new mongoose.Schema(
       type: String, // from Cloudinary
       required: true,
     },
-    organizer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     registrationFee: {
       type: Number,
       default: 0,
-    },
-    refundPolicy: {
-      type: String,
-      default: "Contact the organizer for any refund related information",
     },
     tags: [
       {
