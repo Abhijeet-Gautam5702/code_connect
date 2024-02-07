@@ -6,6 +6,7 @@ import {
   changePassword,
   changeOtherUserAccountDetails,
   getLoggedInUser,
+  getUserRegisteredEvents,
 } from "../controllers/user.controllers.js";
 import { verifyUserToken } from "../middlewares/auth.middlewares.js";
 
@@ -27,5 +28,9 @@ userRouter.route("/change-password").put(verifyUserToken, changePassword);
 userRouter
   .route("/change-other-account-details")
   .put(verifyUserToken, changeOtherUserAccountDetails);
+
+userRouter
+  .route("/get-registered-events")
+  .get(verifyUserToken, getUserRegisteredEvents);
 
 export default userRouter;

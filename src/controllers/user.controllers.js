@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import EventRegistration from "../models/eventRegistration.models.js";
 import User from "../models/user.models.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import { customApiError } from "../utils/customApiError.utils.js";
@@ -9,7 +11,7 @@ const cookieOptions = {
 };
 
 /*
-  GET-USER CONTROLLER
+  GET LOGGED-IN USER CONTROLLER
 */
 const getLoggedInUser = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware
@@ -274,6 +276,43 @@ const changeOtherUserAccountDetails = asyncHandler(async (req, res) => {
     );
 });
 
+/*------------------------- USER EVENT CONTROLLERS -------------------------*/
+
+const getUserRegisteredEvents = asyncHandler(async (req, res) => {
+  // Authorize the user by the Auth Middleware
+
+  // Get userId from req.user
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      500,
+      "Something went wrong from our side | Logged-In User-ID not found"
+    );
+  }
+
+  // MongoDB aggregation pipelines
+  // Find all "Event" documents with
+  const registeredEvents = await EventRegistration.aggregate([
+    // Stage-1: Match all "EventRegistration" documents with their `attendee` field same as userID
+    {
+      $match: {
+        attendee: new mongoose.Types.ObjectId(userId),
+      },
+    },
+  ]);
+
+  // Send success response to the user
+  res
+    .status(200)
+    .json(
+      new customApiResponse(
+        "Registered Events fetched successfully",
+        200,
+        registeredEvents
+      )
+    );
+});
+
 export {
   userRegister,
   userLogin,
@@ -281,4 +320,5 @@ export {
   changePassword,
   changeOtherUserAccountDetails,
   getLoggedInUser,
+  getUserRegisteredEvents,
 };
