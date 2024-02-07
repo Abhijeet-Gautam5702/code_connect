@@ -278,6 +278,9 @@ const changeOtherUserAccountDetails = asyncHandler(async (req, res) => {
 
 /*------------------------- USER EVENT CONTROLLERS -------------------------*/
 
+/*
+  GET USER-REGISTERED EVENTS CONTROLLER (Testing Pending)
+*/
 const getUserRegisteredEvents = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware
 
@@ -291,12 +294,31 @@ const getUserRegisteredEvents = asyncHandler(async (req, res) => {
   }
 
   // MongoDB aggregation pipelines
-  // Find all "Event" documents with
   const registeredEvents = await EventRegistration.aggregate([
     // Stage-1: Match all "EventRegistration" documents with their `attendee` field same as userID
     {
       $match: {
         attendee: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    // Stage-2: Get the details of the registered event
+    {
+      $lookup: {
+        from: "events",
+        localField: "eventId",
+        foreignField: "_id",
+        as: "eventDetails",
+        pipeline: [
+          // Stage-2.1: Get only specific details from the event
+          {
+            $project: {
+              title: 1,
+              isEventOnline: 1,
+              venue: 1,
+              thumbnail: 1,
+            },
+          },
+        ],
       },
     },
   ]);
@@ -311,6 +333,17 @@ const getUserRegisteredEvents = asyncHandler(async (req, res) => {
         registeredEvents
       )
     );
+});
+
+/*
+  GET USER-HOSTED EVENTS CONTROLLER (Testing Pending)
+*/
+const getUserHostedEvents = asyncHandler(async (req, res) => {
+  // Authorize the user by the Auth Middleware
+
+  // Get userId from req.user
+
+  // MongoDB Aggregation Pipelines
 });
 
 export {
