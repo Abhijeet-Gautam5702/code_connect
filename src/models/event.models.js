@@ -1,10 +1,34 @@
 import mongoose from "mongoose";
 
-// Sub-document for the Venue of the Event
+// Sub-document for the venue of the Event
 const venueSchema = new mongoose.Schema({
   address: String,
   lat: String,
   long: String,
+});
+
+// Sub-document for the time of the Event
+const timeSchema = new mongoose.Schema({
+  startTime: {
+    type: String,
+    required: true,
+  },
+  endTime: {
+    type: String,
+    required: true,
+  },
+});
+
+// Sub-document for the date of the Event
+const dateSchema = new mongoose.Schema({
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
 });
 
 const eventSchema = new mongoose.Schema(
@@ -27,20 +51,12 @@ const eventSchema = new mongoose.Schema(
       type: venueSchema,
       required: false,
     },
-    startTime: {
-      type: String,
+    time: {
+      type: timeSchema,
       required: true,
     },
-    endTime: {
-      type: String,
-      required: true,
-    },
-    startDate: {
-      type: Date,
-      required: true,
-    },
-    endDate: {
-      type: Date,
+    date: {
+      type: dateSchema,
       required: true,
     },
     thumbnail: {
