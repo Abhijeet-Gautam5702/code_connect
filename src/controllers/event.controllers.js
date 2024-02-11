@@ -4,130 +4,8 @@ import EventRegistration from "../models/eventRegistration.models.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import { customApiError } from "../utils/customApiError.utils.js";
 import { customApiResponse } from "../utils/customApiResponse.utils.js";
-import uploadOnCloudinary from "../utils/uploadOnCloudinary.utils.js";
-
-// Object containing the Initial error message for the API-Errors used in the controllers
-const INITIAL_ERROR_MESSAGE = {
-  CREATE_EVENT: "Could not create a new event",
-};
 
 // ADD NEW EVENT CONTROLLER
-const addEvent = asyncHandler(async (req, res) => {
-  // Authorize user by Auth middleware
-
-  // Get userId from req.user
-  const userId = req.user?._id;
-  if (!userId) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | User-ID not recieved`,
-      500
-    );
-  }
-
-  // Get event details
-  const {
-    title,
-    description,
-    isEventOnline,
-    registrationFee,
-    address,
-    lat,
-    long,
-    startTime,
-    endTime,
-    startDate,
-    endDate,
-    tags,
-  } = req.body;
-  if (
-    [title, description, startTime, endTime, startDate, endDate].some(
-      (field) => !field || (field && field.trim() === "")
-    )
-  ) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | One or more required fields are not provided`,
-      422
-    );
-  }
-
-  if (
-    !isEventOnline &&
-    [address, lat, long].some(
-      (field) => !field || (field && field.trim() === "")
-    )
-  ) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Since the event is offline, venue details are requried | One or more fields in the Event Venue are not provided`,
-      422
-    );
-  }
-
-  // Get the thumbnail of the event
-  const thumbnail = req.file;
-  if (!thumbnail.path) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Thumbnail not recieved`,
-      422
-    );
-  }
-  const thumbnailLocalPath = thumbnail?.path;
-  // Upload thumbnail to Cloudinary
-  const thumbnailUploadedOnCloudinary = await uploadOnCloudinary(
-    thumbnailLocalPath
-  );
-  if (!thumbnailUploadedOnCloudinary.url) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Thumbnail could not be uploaded on Cloudinary`,
-      500
-    );
-  }
-
-  // Check if an event with identical details is present in the database
-  const isEventAlreadyExists = await Event.findOne({ title: title?.trim() });
-  if (isEventAlreadyExists) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Event with the same name already exists`,
-      400
-    );
-  }
-
-  // Create a new event in the database
-  const newEvent = await Event.create({
-    host: userId,
-    title,
-    description,
-    thumbnail: thumbnailUploadedOnCloudinary?.url,
-    isEventOnline: isEventOnline || false,
-    registrationFee: registrationFee || 0,
-    venue: {
-      address,
-      lat,
-      long,
-    },
-    time: {
-      startTime,
-      endTime,
-    },
-    date: {
-      startDate,
-      endDate,
-    },
-    tags,
-  });
-  if (!newEvent) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Some unknown error occured at our end in creating the event in the database`,
-      500
-    );
-  }
-
-  // Send success response to the user
-  res
-    .status(200)
-    .json(
-      new customApiResponse("New event created successfully", 200, newEvent)
-    );
-});
 
 // DELETE EVENT CONTROLLER
 
@@ -239,4 +117,4 @@ const eventRegister = asyncHandler(async (req, res) => {
 
 // EVENT DE-REGISTER CONTROLLER
 
-export { addEvent, eventRegister };
+
