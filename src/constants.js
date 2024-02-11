@@ -2,4 +2,8 @@
 
 const DB_NAME = "code_connect";
 
-export { DB_NAME };
+const API_VERSION = "api/v1";
+
+const CLOUDINARY_CLOUD_NAME = "dmso2v4ec";
+
+export { DB_NAME, API_VERSION ,CLOUDINARY_CLOUD_NAME};
