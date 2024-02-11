@@ -33,6 +33,11 @@ const dateSchema = new mongoose.Schema({
 
 const eventSchema = new mongoose.Schema(
   {
+    host: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     title: {
       type: String,
       required: true,
@@ -60,10 +65,6 @@ const eventSchema = new mongoose.Schema(
       required: true,
     },
     thumbnail: {
-      type: String, // from Cloudinary
-      required: true,
-    },
-    coverImage: {
       type: String, // from Cloudinary
       required: true,
     },
