@@ -32,7 +32,7 @@ const getLoggedInUser = asyncHandler(async (req, res) => {
     );
 });
 
-/*------------------------- USER FUNCTIONALITY CONTROLLERS -------------------------*/
+/*------------------------- GENERAL USER CONTROLLERS -------------------------*/
 
 /*
     USER-REGISTRATION CONTROLLER
@@ -343,7 +343,9 @@ const getUserHostedEvents = asyncHandler(async (req, res) => {
 
   // Get userId from req.user
 
-  // MongoDB Aggregation Pipelines
+  // Get all user-hosted events (MongoDB Aggregation Pipelines)
+
+  // Send success response to the user
 });
 
 export {

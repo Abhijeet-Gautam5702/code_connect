@@ -7,6 +7,20 @@ import { customApiResponse } from "../utils/customApiResponse.utils.js";
 import uploadOnCloudinary from "../utils/uploadOnCloudinary.utils.js";
 import { INITIAL_ERROR_MESSAGES } from "../constants.js";
 
+
+// GET ALL EVENTS
+const getAllEvents = asyncHandler(async (req, res) => {
+  // Authorization check by Auth middleware
+
+  // Get userId from req.user
+  
+  // Get all the events from the database with relevant details (Aggregation Pipeline)
+
+  // Send success response to the user
+});
+
+/* ------------------------------------- GENERAL EVENT CONTROLLERS ------------------------------------- */
+
 // ADD NEW EVENT
 const addEvent = asyncHandler(async (req, res) => {
   // Authorize user by Auth middleware
@@ -126,8 +140,69 @@ const addEvent = asyncHandler(async (req, res) => {
 });
 
 // DELETE EVENT
+const deleteEvent = asyncHandler(async (req, res) => {
+  // Authorization check by Auth middleware
 
-// EVENT REGISTER (Testing pending)
+  // Get userId from req.user
+
+  // Get the eventId from req.params
+
+  // Check if the event exists
+
+  // Check if the user is authorized to delete the event
+
+  // Delete the event
+
+  // Send success response to the user
+});
+
+// UPDATE EVENT DETAILS
+const updateEventDetails = asyncHandler(async (req, res) => {
+  // Authorization check by Auth middleware
+
+  // Get userId from req.user
+
+  // Get eventId from req.params
+
+  // Get the details of the events that need to be updated
+
+  // Check if the event exists
+
+  // Check if the user is authorized to make changes to the event
+
+  // Update the details of the event
+
+  // Send success response to the user
+});
+
+// UPDATE EVENT THUMBNAIL
+const updateEventThumbnail = asyncHandler(async (req, res) => {
+  // Authorization check by Auth middleware
+
+  // Get userId from req.user
+
+  // Get eventId from req.params
+
+  // Get the thumbnail link of the event that needs to be updated
+
+  // Check if the event exists
+
+  // Check if the user is authorized to make changes to the event
+
+  // Get the local file path of the thumbnail
+
+  // Upload the file to Cloudinary
+
+  // Get the url of the uploaded thumbnail
+
+  // Update the thumbnail url in the event
+
+  // Send success response to the user
+});
+
+/* ------------------------------------- EVENT REGISTRATION CONTROLLERS ------------------------------------- */
+
+// EVENT REGISTER
 const eventRegister = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware
 
@@ -223,9 +298,9 @@ const eventRegister = asyncHandler(async (req, res) => {
               coverImage: 0,
               host: 0,
               _id: 0,
-              createdAt:0,
-              updatedAt:0,
-              __v:0,
+              createdAt: 0,
+              updatedAt: 0,
+              __v: 0,
             },
           },
         ],
@@ -289,6 +364,27 @@ const eventRegister = asyncHandler(async (req, res) => {
     );
 });
 
-// EVENT DE-REGISTER CONTROLLER
+// EVENT DE-REGISTER
+const eventDeregister = asyncHandler(async (req, res) => {
+  // Authorization check by Auth middleware
 
-export { addEvent, eventRegister };
+  // Get userId from req.user
+
+  // Get eventId from req.params
+
+  // Check if the event exists
+
+  // Delete the appropriate "EventRegistration" document from the database
+
+  // Send success response to the user
+});
+
+export {
+  addEvent,
+  eventRegister,
+  eventDeregister,
+  updateEventDetails,
+  updateEventThumbnail,
+  deleteEvent,
+  getAllEvents,
+};
