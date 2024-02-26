@@ -5,13 +5,9 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import { customApiError } from "../utils/customApiError.utils.js";
 import { customApiResponse } from "../utils/customApiResponse.utils.js";
 import uploadOnCloudinary from "../utils/uploadOnCloudinary.utils.js";
+import { INITIAL_ERROR_MESSAGES } from "../constants.js";
 
-// Object containing the Initial error message for the API-Errors used in the controllers
-const INITIAL_ERROR_MESSAGE = {
-  CREATE_EVENT: "Could not create a new event",
-};
-
-// ADD NEW EVENT CONTROLLER
+// ADD NEW EVENT
 const addEvent = asyncHandler(async (req, res) => {
   // Authorize user by Auth middleware
 
@@ -19,7 +15,7 @@ const addEvent = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   if (!userId) {
     throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | User-ID not recieved`,
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | User-ID not recieved`,
       500
     );
   }
@@ -45,7 +41,7 @@ const addEvent = asyncHandler(async (req, res) => {
     )
   ) {
     throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | One or more required fields are not provided`,
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | One or more required fields are not provided`,
       422
     );
   }
@@ -57,7 +53,7 @@ const addEvent = asyncHandler(async (req, res) => {
     )
   ) {
     throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Since the event is offline, venue details are requried | One or more fields in the Event Venue are not provided`,
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Since the event is offline, venue details are requried | One or more fields in the Event Venue are not provided`,
       422
     );
   }
@@ -66,7 +62,7 @@ const addEvent = asyncHandler(async (req, res) => {
   const thumbnail = req.file;
   if (!thumbnail.path) {
     throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Thumbnail not recieved`,
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Thumbnail not recieved`,
       422
     );
   }
@@ -77,7 +73,7 @@ const addEvent = asyncHandler(async (req, res) => {
   );
   if (!thumbnailUploadedOnCloudinary.url) {
     throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Thumbnail could not be uploaded on Cloudinary`,
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Thumbnail could not be uploaded on Cloudinary`,
       500
     );
   }
@@ -86,7 +82,7 @@ const addEvent = asyncHandler(async (req, res) => {
   const isEventAlreadyExists = await Event.findOne({ title: title?.trim() });
   if (isEventAlreadyExists) {
     throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Event with the same name already exists`,
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Event with the same name already exists`,
       400
     );
   }
@@ -116,7 +112,7 @@ const addEvent = asyncHandler(async (req, res) => {
   });
   if (!newEvent) {
     throw new customApiError(
-      `${INITIAL_ERROR_MESSAGE.CREATE_EVENT} | Some unknown error occured at our end in creating the event in the database`,
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Some unknown error occured at our end in creating the event in the database`,
       500
     );
   }
@@ -129,9 +125,9 @@ const addEvent = asyncHandler(async (req, res) => {
     );
 });
 
-// DELETE EVENT CONTROLLER
+// DELETE EVENT
 
-// EVENT REGISTER CONTROLLER (Testing pending)
+// EVENT REGISTER (Testing pending)
 const eventRegister = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware
 
@@ -139,7 +135,7 @@ const eventRegister = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   if (!userId) {
     throw new customApiError(
-      "Unexpected error from our side | Logged-In User-ID not recieved",
+      `${INITIAL_ERROR_MESSAGES.EVENTS.REGISTER_EVENT} | User-ID not received`,
       500
     );
   }
@@ -147,13 +143,31 @@ const eventRegister = asyncHandler(async (req, res) => {
   // Get the eventId from the URL params
   const eventId = req.params?.eventId;
   if (!eventId) {
-    throw new customApiError("Event-ID not recieved", 422);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.REGISTER_EVENT} | Event-ID not received`,
+      422
+    );
   }
 
   // Check if the event exists in the database
   const isEventExists = await Event.findById(eventId);
   if (!isEventExists) {
-    throw new customApiError("Invalid Event-ID | Event not found", 404);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.REGISTER_EVENT} | Event with given ID not found`,
+      404
+    );
+  }
+
+  // Check if the user is the host of the event (Host do not need to register for their own event)
+  const isUserTheHostOfTheEvent = await Event.findOne({
+    _id: eventId,
+    host: userId,
+  });
+  if (isUserTheHostOfTheEvent) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.REGISTER_EVENT} | Hosts need not register to the event`,
+      400
+    );
   }
 
   // Check if the user has already registered for this event
@@ -163,25 +177,14 @@ const eventRegister = asyncHandler(async (req, res) => {
   });
   if (isUserAlreadyRegistered) {
     throw new customApiError(
-      "Registration Failed | User has already registered for this event",
-      400
-    );
-  }
-
-  // Check if the user is the host of the event (Host do not need to register for their own event)
-  const isUserTheHostOfTheEvent = await EventRegistration.findOne({
-    eventId,
-    host: userId,
-  });
-  if (isUserTheHostOfTheEvent) {
-    throw new customApiError(
-      "Registration Failed | Host need not register for their own events",
+      `${INITIAL_ERROR_MESSAGES.EVENTS.REGISTER_EVENT} | You have already registered for this event`,
       400
     );
   }
 
   // Get the host-ID of the event
-  const hostId = await EventRegistration.findById(eventId).host;
+  const hostId = isEventExists.host;
+  // console.log(hostId)
 
   // Create a new "EventRegistration" document
   const newRegistration = await EventRegistration.create({
@@ -191,7 +194,7 @@ const eventRegister = asyncHandler(async (req, res) => {
   });
   if (!newRegistration) {
     throw new customApiError(
-      "Registration Failed | User could not be registered for the event",
+      `${INITIAL_ERROR_MESSAGES.EVENTS.REGISTER_EVENT} | Some unknown error occured at our end`,
       500
     );
   }
@@ -201,8 +204,8 @@ const eventRegister = asyncHandler(async (req, res) => {
     // Stage-1: Match all "EventRegistration" documents whose `eventId` is same as eventId and `attendee` field is same as userId
     {
       $match: {
-        eventId: mongoose.Types.ObjectId(eventId),
-        attendee: mongoose.Types.ObjectId(userId),
+        eventId: new mongoose.Types.ObjectId(eventId),
+        attendee: new mongoose.Types.ObjectId(userId),
       },
     },
     // Stage-2: Lookup for the event details from the "events" database
@@ -218,10 +221,59 @@ const eventRegister = asyncHandler(async (req, res) => {
               tags: 0,
               thumbnail: 0,
               coverImage: 0,
+              host: 0,
+              _id: 0,
+              createdAt:0,
+              updatedAt:0,
+              __v:0,
             },
           },
         ],
       },
+    },
+    // Stage-3: Lookup for attendee details
+    {
+      $lookup: {
+        from: "users",
+        localField: "attendee",
+        foreignField: "_id",
+        as: "attendee",
+        pipeline: [
+          {
+            $project: {
+              fullname: 1,
+              email: 1,
+            },
+          },
+        ],
+      },
+    },
+    // Stage-4: Lookup for host details
+    {
+      $lookup: {
+        from: "users",
+        localField: "host",
+        foreignField: "_id",
+        as: "host",
+        pipeline: [
+          {
+            $project: {
+              fullname: 1,
+              email: 1,
+            },
+          },
+        ],
+      },
+    },
+    // Stage-5: Unwind the `eventDetails` field
+    {
+      $unwind: "$eventDetails",
+    },
+    {
+      $unwind: "$host",
+    },
+    {
+      $unwind: "$attendee",
     },
   ]);
 
@@ -232,7 +284,7 @@ const eventRegister = asyncHandler(async (req, res) => {
       new customApiResponse(
         "User successfully registered for the event",
         200,
-        data
+        data[0]
       )
     );
 });
