@@ -336,7 +336,7 @@ const getUserRegisteredEvents = asyncHandler(async (req, res) => {
 });
 
 /*
-  GET USER-HOSTED EVENTS CONTROLLER (Testing Pending)
+  GET USER-HOSTED EVENTS CONTROLLER
 */
 const getUserHostedEvents = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware

@@ -61,6 +61,7 @@ const getEventById = asyncHandler(async (req, res) => {
     );
   }
 
+  // Get eventId from req.params
   const eventId = req.params?.eventId;
   if (!eventId) {
     throw new customApiError(
@@ -220,11 +221,13 @@ const addEvent = asyncHandler(async (req, res) => {
     thumbnail: thumbnailUploadedOnCloudinary?.url,
     isEventOnline: isEventOnline || false,
     registrationFee: registrationFee || 0,
-    venue: {
-      address,
-      lat,
-      long,
-    },
+    venue: [address, lat, long].some((item) => item)
+      ? {
+          address,
+          lat,
+          long,
+        }
+      : null,
     time: {
       startTime,
       endTime,
@@ -253,12 +256,49 @@ const addEvent = asyncHandler(async (req, res) => {
 // DELETE EVENT
 const deleteEvent = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
+
   // Get userId from req.user
-  // Get the eventId from req.params
-  // Check if the event exists
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.DELETE_EVENT} | User-ID not recieved`,
+      500
+    );
+  }
+
+  // Get eventId from req.params
+  const eventId = req.params?.eventId;
+  if (!eventId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.DELETE_EVENT} | Event-ID not received`,
+      422
+    );
+  }
+
   // Check if the user is authorized to delete the event
+  const isUserHostOfEvent = await Event.findOne({
+    _id:eventId,
+    host: userId,
+  });
+  if (!isUserHostOfEvent) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.DELETE_EVENT} | Unauthorized access | Only the host can delete the event`,
+      400
+    );
+  }
+
   // Delete the event
+  // Deleting event from the EventRegistration database
+  await EventRegistration.findByIdAndDelete(
+    eventId
+  );
+  // Deleting event from the Event database
+  await Event.findByIdAndDelete(eventId);
+
   // Send success response to the user
+  res
+    .status(200)
+    .json(new customApiResponse("Event deleted successfully", 200, {}));
 });
 
 // UPDATE EVENT DETAILS
