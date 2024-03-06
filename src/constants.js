@@ -8,6 +8,8 @@ const CLOUDINARY_CLOUD_NAME = "dmso2v4ec";
 
 const INITIAL_ERROR_MESSAGES = {
   EVENTS: {
+    GET_EVENTS:"Could not fetch events successfully",
+    GET_EVENT_BY_ID:"Could not fetch event details successfully",
     CREATE_EVENT: "Could not create a new event",
     REGISTER_EVENT: "Could not register to the event",
     DELETE_EVENT: "Could not delete the event",

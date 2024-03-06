@@ -9,6 +9,7 @@ import {
   updateEventThumbnail,
   deleteEvent,
   getAllEvents,
+  getEventById,
 } from "../controllers/event.controllers.js";
 
 const eventRouter = Router();
@@ -16,6 +17,8 @@ const eventRouter = Router();
 // Secured routes
 
 eventRouter.route("/get-all-events").get(verifyUserToken, getAllEvents);
+
+eventRouter.route("/get-event-by-id/:eventId").get(verifyUserToken, getEventById);
 
 eventRouter
   .route("/add-event")

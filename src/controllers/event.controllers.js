@@ -7,16 +7,127 @@ import { customApiResponse } from "../utils/customApiResponse.utils.js";
 import uploadOnCloudinary from "../utils/uploadOnCloudinary.utils.js";
 import { INITIAL_ERROR_MESSAGES } from "../constants.js";
 
-
 // GET ALL EVENTS
 const getAllEvents = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
 
   // Get userId from req.user
-  
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.GET_EVENTS} | User-ID not recieved`,
+      500
+    );
+  }
+
   // Get all the events from the database with relevant details (Aggregation Pipeline)
+  const events = await Event.aggregate([
+    {
+      $project: {
+        title: 1,
+        isEventOnline: 1,
+        time: 1,
+        date: 1,
+        thumbnail: 1,
+        registrationFee: 1,
+      },
+    },
+  ]);
+  if (!events.length) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.GET_EVENTS} | Some unknown error occured at our end`,
+      500
+    );
+  }
 
   // Send success response to the user
+  res
+    .status(200)
+    .json(
+      new customApiResponse("All events fetched successfully", 200, events)
+    );
+});
+
+// GET AN EVENT BY ITS EVENT-ID
+const getEventById = asyncHandler(async (req, res) => {
+  // Authorization check by Auth middleware
+
+  // Get userId from req.user
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.GET_EVENT_BY_ID} | User-ID not recieved`,
+      500
+    );
+  }
+
+  const eventId = req.params?.eventId;
+  if (!eventId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.GET_EVENT_BY_ID} | Event-ID not received`,
+      422
+    );
+  }
+
+  // Find the event from the database with relevant details (Aggregation Pipeline)
+  const event = await Event.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(eventId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "host",
+        foreignField: "_id",
+        as: "host",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              email: 1,
+              fullname: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$host",
+    },
+    {
+      $lookup: {
+        from: "eventregistrations",
+        localField: "_id",
+        foreignField: "eventId",
+        as: "eventRegistrations",
+      },
+    },
+    {
+      $addFields: {
+        attendees: {
+          $size: "$eventRegistrations",
+        },
+      },
+    },
+    {
+      $project: {
+        eventRegistrations: 0,
+      },
+    },
+  ]);
+  if (!event.length) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.GET_EVENT_BY_ID} | Either the event doesn't exist or some unknown error occured at the database end. Please check the event-ID carefully`,
+      500
+    );
+  }
+
+  // Send success response to the user
+  res
+    .status(200)
+    .json(new customApiResponse("Event fetched successfully", 200, event[0]));
 });
 
 /* ------------------------------------- GENERAL EVENT CONTROLLERS ------------------------------------- */
@@ -142,61 +253,38 @@ const addEvent = asyncHandler(async (req, res) => {
 // DELETE EVENT
 const deleteEvent = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
-
   // Get userId from req.user
-
   // Get the eventId from req.params
-
   // Check if the event exists
-
   // Check if the user is authorized to delete the event
-
   // Delete the event
-
   // Send success response to the user
 });
 
 // UPDATE EVENT DETAILS
 const updateEventDetails = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
-
   // Get userId from req.user
-
   // Get eventId from req.params
-
   // Get the details of the events that need to be updated
-
   // Check if the event exists
-
   // Check if the user is authorized to make changes to the event
-
   // Update the details of the event
-
   // Send success response to the user
 });
 
 // UPDATE EVENT THUMBNAIL
 const updateEventThumbnail = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
-
   // Get userId from req.user
-
   // Get eventId from req.params
-
   // Get the thumbnail link of the event that needs to be updated
-
   // Check if the event exists
-
   // Check if the user is authorized to make changes to the event
-
   // Get the local file path of the thumbnail
-
   // Upload the file to Cloudinary
-
   // Get the url of the uploaded thumbnail
-
   // Update the thumbnail url in the event
-
   // Send success response to the user
 });
 
@@ -367,15 +455,10 @@ const eventRegister = asyncHandler(async (req, res) => {
 // EVENT DE-REGISTER
 const eventDeregister = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
-
   // Get userId from req.user
-
   // Get eventId from req.params
-
   // Check if the event exists
-
   // Delete the appropriate "EventRegistration" document from the database
-
   // Send success response to the user
 });
 
@@ -387,4 +470,5 @@ export {
   updateEventThumbnail,
   deleteEvent,
   getAllEvents,
+  getEventById,
 };
