@@ -4,6 +4,7 @@ import User from "../models/user.models.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import { customApiError } from "../utils/customApiError.utils.js";
 import { customApiResponse } from "../utils/customApiResponse.utils.js";
+import { INITIAL_ERROR_MESSAGES } from "../constants.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -18,6 +19,12 @@ const getLoggedInUser = asyncHandler(async (req, res) => {
 
   // Get user instance from req.user object injected by the Auth middleware
   const userId = req.user._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.GET_LOGGED_IN_USER} | User-ID not received`,
+      422
+    );
+  }
 
   // Remove senstitive information and send success response to the user
   const user = await User.findById(userId).select("-password -refreshToken");
@@ -47,7 +54,10 @@ const userRegister = asyncHandler(async (req, res) => {
       (field) => !field || (field && field.trim() === "")
     )
   ) {
-    throw new customApiError("One or more required fields is empty", 400);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.REGISTER_USER} | One or more required fields is empty`,
+      400
+    );
   }
 
   // Check if the user already exists in database using the email or username
@@ -55,7 +65,10 @@ const userRegister = asyncHandler(async (req, res) => {
     $or: [{ username }, { email }],
   });
   if (isUserExists) {
-    throw new customApiError("A user with same username or email exists", 409);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.REGISTER_USER} | A user with same username or email exists`,
+      409
+    );
   }
 
   // Create the user from the recieved details
@@ -72,7 +85,10 @@ const userRegister = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
   if (!createdUser) {
-    throw new customApiError("User registration could not be completed", 500);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.REGISTER_USER} | Some unknown error occured at our end | User could not be created in our database`,
+      500
+    );
   }
 
   // Send response to the client
@@ -92,10 +108,16 @@ const userLogin = asyncHandler(async (req, res) => {
 
   // Check if the username or email along with password is provided by the user
   if (!(email || username)) {
-    throw new customApiError("Either email or the username is required", 400);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.LOGIN_USER} | Either email or the username is required`,
+      400
+    );
   }
   if (!password || password?.trim() === "") {
-    throw new customApiError("Password (required field) is not provided", 401);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.LOGIN_USER} | Password (required field) is not provided`,
+      401
+    );
   }
 
   // Check if the user exists in the database
@@ -104,7 +126,7 @@ const userLogin = asyncHandler(async (req, res) => {
   });
   if (!user) {
     throw new customApiError(
-      "User with the given credentials doesn't exist",
+      `${INITIAL_ERROR_MESSAGES.USERS.LOGIN_USER} | User with the given credentials doesn't exist`,
       404
     );
   }
@@ -112,7 +134,10 @@ const userLogin = asyncHandler(async (req, res) => {
   // Check if the password is correct
   const isPasswordCorrect = await user.validatePassword(password);
   if (!isPasswordCorrect) {
-    throw new customApiError("Incorrect password", 401);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.LOGIN_USER} | Incorrect password`,
+      401
+    );
   }
 
   // Generate access and refresh tokens for the user
@@ -128,7 +153,10 @@ const userLogin = asyncHandler(async (req, res) => {
     { new: true }
   );
   if (!updatedUser.refreshToken) {
-    throw new customApiError("User could not be logged in from our end", 500);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.LOGIN_USER} | User could not be logged in from our end`,
+      500
+    );
   }
 
   const userData = await User.findById(user._id).select(
@@ -157,8 +185,15 @@ const userLogin = asyncHandler(async (req, res) => {
 */
 const userLogout = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware
+
   // Get the userId from the `req.user` object injected by Auth Middleware
   const userId = req.user._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.LOGOUT_USER} | User-ID not received`,
+      422
+    );
+  }
 
   // Clear the refresh token of the user
   const user = await User.findByIdAndUpdate(
@@ -170,7 +205,7 @@ const userLogout = asyncHandler(async (req, res) => {
   );
   if (user.refreshToken) {
     throw new customApiError(
-      "User could not be logged out successfully from our end",
+      `${INITIAL_ERROR_MESSAGES.USERS.LOGOUT_USER} | User could not be logged out successfully from our end`,
       500
     );
   }
@@ -200,11 +235,14 @@ const changePassword = asyncHandler(async (req, res) => {
   const oldPassword = req.body.oldPassword?.trim();
   const newPassword = req.body.newPassword?.trim();
   if (!oldPassword || !newPassword) {
-    throw new customApiError("One or more fields are empty", 422);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.CHANGE_USER_PASSWORD} | One or more fields are empty`,
+      422
+    );
   }
   if (oldPassword === newPassword) {
     throw new customApiError(
-      "New password cannot be same as the old password",
+      `${INITIAL_ERROR_MESSAGES.USERS.CHANGE_USER_PASSWORD} | New password cannot be same as the old password`,
       400
     );
   }
@@ -213,7 +251,10 @@ const changePassword = asyncHandler(async (req, res) => {
   const user = req.user;
   const isPasswordCorrect = await user.validatePassword(oldPassword);
   if (!isPasswordCorrect) {
-    throw new customApiError("Invlaid old password", 401);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.CHANGE_USER_PASSWORD} | Invlaid old password`,
+      401
+    );
   }
 
   // Update the password
@@ -236,7 +277,10 @@ const changeOtherUserAccountDetails = asyncHandler(async (req, res) => {
   const email = req.body.email?.trim();
   const fullname = req.body.fullname?.trim();
   if (!email && !fullname) {
-    throw new customApiError("At least one field is required", 422);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.CHANGE_USER_DETAILS} | At least one field is required`,
+      422
+    );
   }
 
   // Get user instance from the req.user object injected by Auth middleware
@@ -253,15 +297,21 @@ const changeOtherUserAccountDetails = asyncHandler(async (req, res) => {
   );
   if (!updatedUser) {
     throw new customApiError(
-      "User details could not be udpated successfully | User not found",
+      `${INITIAL_ERROR_MESSAGES.USERS.CHANGE_USER_DETAILS} | User not found`,
       404
     );
   }
   if (fullname && updatedUser.fullname !== fullname) {
-    throw new customApiError("User fullname could not be updated", 500);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.CHANGE_USER_DETAILS} | Some unknown error occured at our end`,
+      500
+    );
   }
   if (email && updatedUser.email !== email) {
-    throw new customApiError("User email could not be updated", 500);
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.USERS.CHANGE_USER_DETAILS} | Some unknown error occured at our end`,
+      500
+    );
   }
 
   // Send success response to the user
@@ -288,8 +338,7 @@ const getUserRegisteredEvents = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   if (!userId) {
     throw new customApiError(
-      500,
-      "Something went wrong from our side | Logged-In User-ID not found"
+      `${INITIAL_ERROR_MESSAGES.USERS.GET_USER_REGISTERED_EVENTS} | Something went wrong from our side | Logged-In User-ID not found`,500
     );
   }
 
@@ -358,8 +407,8 @@ const getUserHostedEvents = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   if (!userId) {
     throw new customApiError(
-      500,
-      "Something went wrong from our side | Logged-In User-ID not found"
+      `${INITIAL_ERROR_MESSAGES.USERS.GET_USER_HOSTED_EVENTS} |  Something went wrong from our side | Logged-In User-ID not found`,
+      500
     );
   }
 

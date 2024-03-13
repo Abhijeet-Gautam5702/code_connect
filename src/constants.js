@@ -18,7 +18,17 @@ const INITIAL_ERROR_MESSAGES = {
     UPDATE_EVENT_THUMBNAIL: "Could not update event thumbnail successfully",
   },
   USERS: {
-    // Write the initial error message constants for all the user-controllers here
+    GET_LOGGED_IN_USER:
+      "Logged-In User details could not be fetched successfully",
+    REGISTER_USER: "User could not be registered successfully",
+    LOGIN_USER: "User could not be logged in successfully",
+    LOGOUT_USER: "User could not be logged out successfully",
+    CHANGE_USER_PASSWORD: "User password could not be updated successfully",
+    CHANGE_USER_DETAILS: "User details could not be updated successfully",
+    GET_USER_REGISTERED_EVENTS:
+      "Could not fetch user registered events successfully",
+    GET_USER_HOSTED_EVENTS:
+      "Could not fetch user hosted/created events successfully",
   },
 };
 
