@@ -279,7 +279,7 @@ const changeOtherUserAccountDetails = asyncHandler(async (req, res) => {
 /*------------------------- USER EVENT CONTROLLERS -------------------------*/
 
 /*
-  GET USER-REGISTERED EVENTS CONTROLLER (Testing Pending)
+  GET USER-REGISTERED EVENTS CONTROLLER
 */
 const getUserRegisteredEvents = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware
@@ -314,11 +314,24 @@ const getUserRegisteredEvents = asyncHandler(async (req, res) => {
             $project: {
               title: 1,
               isEventOnline: 1,
+              time: 1,
               venue: 1,
+              date: 1,
+              registrationFee: 1,
               thumbnail: 1,
             },
           },
         ],
+      },
+    },
+    // Stage-3: Project certain fields
+    {
+      $project: {
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0,
+        host: 0,
+        attendee: 0,
       },
     },
   ]);
@@ -342,10 +355,67 @@ const getUserHostedEvents = asyncHandler(async (req, res) => {
   // Authorize the user by the Auth Middleware
 
   // Get userId from req.user
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      500,
+      "Something went wrong from our side | Logged-In User-ID not found"
+    );
+  }
 
-  // Get all user-hosted events (MongoDB Aggregation Pipelines)
+  // MongoDB aggregation pipelines
+  const hostedEvents = await EventRegistration.aggregate([
+    // Stage-1: Match all "EventRegistration" documents with their `host` field same as userID
+    {
+      $match: {
+        host: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    // Stage-2: Get the details of the registered event
+    {
+      $lookup: {
+        from: "events",
+        localField: "eventId",
+        foreignField: "_id",
+        as: "eventDetails",
+        pipeline: [
+          // Stage-2.1: Get only specific details from the event
+          {
+            $project: {
+              title: 1,
+              isEventOnline: 1,
+              time: 1,
+              venue: 1,
+              date: 1,
+              registrationFee: 1,
+              thumbnail: 1,
+            },
+          },
+        ],
+      },
+    },
+    // Stage-3: Project certain fields
+    {
+      $project: {
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0,
+        host: 0,
+        attendee: 0,
+      },
+    },
+  ]);
 
   // Send success response to the user
+  res
+    .status(200)
+    .json(
+      new customApiResponse(
+        "Hosted Events fetched successfully",
+        200,
+        hostedEvents
+      )
+    );
 });
 
 export {
@@ -356,4 +426,5 @@ export {
   changeOtherUserAccountDetails,
   getLoggedInUser,
   getUserRegisteredEvents,
+  getUserHostedEvents,
 };

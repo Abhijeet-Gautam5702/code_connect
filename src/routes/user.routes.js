@@ -7,6 +7,7 @@ import {
   changeOtherUserAccountDetails,
   getLoggedInUser,
   getUserRegisteredEvents,
+  getUserHostedEvents,
 } from "../controllers/user.controllers.js";
 import { verifyUserToken } from "../middlewares/auth.middlewares.js";
 
@@ -32,5 +33,9 @@ userRouter
 userRouter
   .route("/get-registered-events")
   .get(verifyUserToken, getUserRegisteredEvents);
+
+userRouter
+  .route("/get-hosted-events")
+  .get(verifyUserToken, getUserHostedEvents);
 
 export default userRouter;
