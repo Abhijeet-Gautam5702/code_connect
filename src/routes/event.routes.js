@@ -18,7 +18,9 @@ const eventRouter = Router();
 
 eventRouter.route("/get-all-events").get(verifyUserToken, getAllEvents);
 
-eventRouter.route("/get-event-by-id/:eventId").get(verifyUserToken, getEventById);
+eventRouter
+  .route("/get-event-by-id/:eventId")
+  .get(verifyUserToken, getEventById);
 
 eventRouter
   .route("/add-event")
@@ -38,10 +40,10 @@ eventRouter
 
 eventRouter
   .route("/update-event-details/:eventId")
-  .patch(verifyUserToken, updateEventDetails);
+  .patch(verifyUserToken, multerUpload.none(), updateEventDetails);
 
 eventRouter
   .route("/update-event-thumbnail/:eventId")
-  .patch(verifyUserToken, updateEventThumbnail);
+  .patch(verifyUserToken, multerUpload.single("thumbnail"), updateEventThumbnail);
 
 export default eventRouter;

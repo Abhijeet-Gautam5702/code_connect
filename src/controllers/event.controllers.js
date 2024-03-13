@@ -184,6 +184,15 @@ const addEvent = asyncHandler(async (req, res) => {
     );
   }
 
+  // Check if an event with identical details is present in the database
+  const isEventAlreadyExists = await Event.findOne({ title: title?.trim() });
+  if (isEventAlreadyExists) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Event with the same name already exists`,
+      400
+    );
+  }
+
   // Get the thumbnail of the event
   const thumbnail = req.file;
   if (!thumbnail.path) {
@@ -201,15 +210,6 @@ const addEvent = asyncHandler(async (req, res) => {
     throw new customApiError(
       `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Thumbnail could not be uploaded on Cloudinary`,
       500
-    );
-  }
-
-  // Check if an event with identical details is present in the database
-  const isEventAlreadyExists = await Event.findOne({ title: title?.trim() });
-  if (isEventAlreadyExists) {
-    throw new customApiError(
-      `${INITIAL_ERROR_MESSAGES.EVENTS.CREATE_EVENT} | Event with the same name already exists`,
-      400
     );
   }
 
@@ -277,7 +277,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
 
   // Check if the user is authorized to delete the event
   const isUserHostOfEvent = await Event.findOne({
-    _id:eventId,
+    _id: eventId,
     host: userId,
   });
   if (!isUserHostOfEvent) {
@@ -289,9 +289,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
 
   // Delete the event
   // Deleting event from the EventRegistration database
-  await EventRegistration.findByIdAndDelete(
-    eventId
-  );
+  await EventRegistration.findByIdAndDelete(eventId);
   // Deleting event from the Event database
   await Event.findByIdAndDelete(eventId);
 
@@ -304,28 +302,165 @@ const deleteEvent = asyncHandler(async (req, res) => {
 // UPDATE EVENT DETAILS
 const updateEventDetails = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
+
   // Get userId from req.user
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_DETAILS} | User-ID not recieved`,
+      500
+    );
+  }
+
   // Get eventId from req.params
+  const eventId = req.params?.eventId;
+  if (!eventId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_DETAILS} | Event-ID not received`,
+      422
+    );
+  }
+
   // Get the details of the events that need to be updated
+  const {
+    title,
+    description,
+    isEventOnline,
+    registrationFee,
+    address,
+    lat,
+    long,
+    startTime,
+    endTime,
+    startDate,
+    endDate,
+    tags,
+  } = req.body;
+
   // Check if the event exists
-  // Check if the user is authorized to make changes to the event
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_DETAILS} | Event with the given Event-ID not found`,
+      404
+    );
+  }
+
+  // Check if the user is authorized to modify the event
+  const isUserHostOfEvent = await Event.findOne({
+    _id: eventId,
+    host: userId,
+  });
+  if (!isUserHostOfEvent) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_DETAILS} | Unauthorized access | Only the host can modify the event`,
+      400
+    );
+  }
+
   // Update the details of the event
+  event.title = title || event.title;
+  event.description = description || event.description;
+  event.isEventOnline = isEventOnline || event.isEventOnline;
+  event.registrationFee = registrationFee || event.registrationFee;
+  event.tags = tags?.length ? tags : event.tags;
+  event.date = {
+    startDate: startDate || event.date.startDate,
+    endDate: endDate || event.date.endDate,
+  };
+  event.time = {
+    startTime: startTime || event.time.startTime,
+    endTime: endTime || event.time.endTime,
+  };
+  event.venue = {
+    address: address || event.venue.address,
+    lat: lat || event.venue.lat,
+    long: long || event.venue.long,
+  };
+
+  await event.save();
+
   // Send success response to the user
+  res
+    .status(200)
+    .json(
+      new customApiResponse("Event details updated successfully", 200, event)
+    );
 });
 
 // UPDATE EVENT THUMBNAIL
 const updateEventThumbnail = asyncHandler(async (req, res) => {
   // Authorization check by Auth middleware
+
   // Get userId from req.user
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_THUMBNAIL} | User-ID not recieved`,
+      500
+    );
+  }
+
   // Get eventId from req.params
-  // Get the thumbnail link of the event that needs to be updated
+  const eventId = req.params?.eventId;
+  if (!eventId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_THUMBNAIL} | Event-ID not received`,
+      422
+    );
+  }
+
   // Check if the event exists
-  // Check if the user is authorized to make changes to the event
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_THUMBNAIL} | Event with the given Event-ID not found`,
+      404
+    );
+  }
+
+  // Check if the user is authorized to modify the event
+  const isUserHostOfEvent = await Event.findOne({
+    _id: eventId,
+    host: userId,
+  });
+  if (!isUserHostOfEvent) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_THUMBNAIL} | Unauthorized access | Only the host can modify the event`,
+      400
+    );
+  }
+
   // Get the local file path of the thumbnail
+  const thumbnail = req.file;
+  if (!thumbnail.path) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_THUMBNAIL} | Thumbnail not recieved`,
+      422
+    );
+  }
+
   // Upload the file to Cloudinary
-  // Get the url of the uploaded thumbnail
+  const thumbnailUploadedOnCloudinary = await uploadOnCloudinary(
+    thumbnail.path
+  );
+  if (!thumbnailUploadedOnCloudinary.url) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.UPDATE_EVENT_THUMBNAIL} | Some error occured at our end | Thumbnail could not be uploaded on our servers`,
+      500
+    );
+  }
+
   // Update the thumbnail url in the event
+  event.thumbnail = thumbnailUploadedOnCloudinary?.url || event.thumbnail;
+  await event.save();
+
   // Send success response to the user
+  res
+    .status(200)
+    .json(
+      new customApiResponse("Event Thumbnail updated successfully", 200, event)
+    );
 });
 
 /* ------------------------------------- EVENT REGISTRATION CONTROLLERS ------------------------------------- */

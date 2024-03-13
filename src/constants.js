@@ -8,12 +8,14 @@ const CLOUDINARY_CLOUD_NAME = "dmso2v4ec";
 
 const INITIAL_ERROR_MESSAGES = {
   EVENTS: {
-    GET_EVENTS:"Could not fetch events successfully",
-    GET_EVENT_BY_ID:"Could not fetch event details successfully",
+    GET_EVENTS: "Could not fetch events successfully",
+    GET_EVENT_BY_ID: "Could not fetch event details successfully",
     CREATE_EVENT: "Could not create a new event",
     REGISTER_EVENT: "Could not register to the event",
     DELETE_EVENT: "Could not delete the event",
     DEREGISTER_EVENT: "Could not de-register from the event",
+    UPDATE_EVENT_DETAILS: "Could not update event details successfully",
+    UPDATE_EVENT_THUMBNAIL: "Could not update event thumbnail successfully",
   },
   USERS: {
     // Write the initial error message constants for all the user-controllers here
