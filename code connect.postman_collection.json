@@ -1,0 +1,472 @@
+{
+	"info": {
+		"_postman_id": "56dfc963-427c-4308-b9f9-c03548debedd",
+		"name": "code connect",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31733572"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\r\n//     \"username\":\"test_username\",\r\n//     \"email\":\"test_email@gmail.com\",\r\n//     \"password\":\"test_password\",\r\n//     \"fullname\":\"test_fullname\"\r\n// }\r\n{\r\n    \"username\":\"test2_username\",\r\n    \"email\":\"test2_email@gmail.com\",\r\n    \"password\":\"test2_password\",\r\n    \"fullname\":\"test2_fullname\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/register",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"test_username\",\r\n    \"email\":\"test_email@gmail.com\",\r\n    \"password\":\"test_password\"\r\n}\r\n// {\r\n//     \"username\":\"test2_username\",\r\n//     \"email\":\"test2_email@gmail.com\",\r\n//     \"password\":\"test2_password\"\r\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/login",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWI5MjcwYmY2MjllM2ZmZWNkZTIzZjgiLCJlbWFpbCI6InRlc3RfZW1haWxAZ21haWwuY29tIiwidXNlcm5hbWUiOiJ0ZXN0X3VzZXJuYW1lIiwiaWF0IjoxNzA2NjMzMDQ3LCJleHAiOjE3MDY3MTk0NDd9.hx41zpV0AhZP2rLd8Rpq1ELX8a6g-XY_MsDZUPM1bsU",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"test_username\",\r\n    \"email\":\"test_email@gmail.com\",\r\n    \"password\":\"test_password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/logout",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change password",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"oldPassword\":\"test_password\",\r\n    \"newPassword\":\"new_test_password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/change-password",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change other account details",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fullname\":\"test_fullname\",\r\n    \"email\":\"test_email@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/change-other-account-details",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"change-other-account-details"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get current logged-in user",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/current-user",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"current-user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get registered events",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/get-registered-events",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"get-registered-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get hosted events",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server-8000}}/users/get-hosted-events",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"users",
+								"get-hosted-events"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "event",
+			"item": [
+				{
+					"name": "add event",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Test Event-2 Title",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Test Event Description",
+									"type": "text"
+								},
+								{
+									"key": "isEventOnline",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "startTime",
+									"value": "10",
+									"type": "text"
+								},
+								{
+									"key": "endTime",
+									"value": "13",
+									"type": "text"
+								},
+								{
+									"key": "startDate",
+									"value": "2023-04-15T10:00:00Z",
+									"type": "text"
+								},
+								{
+									"key": "endDate",
+									"value": "2023-04-16T10:00:00Z",
+									"type": "text"
+								},
+								{
+									"key": "thumbnail",
+									"type": "file",
+									"src": "/C:/Users/HP/Downloads/id (1).jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{server-8000}}/events/add-event",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"add-event"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register to event",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{server-8000}}/events/register-to-event/65c8d0174b259aec33970527",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"register-to-event",
+								"65c8d0174b259aec33970527"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server-8000}}/events/get-all-events",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"get-all-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get event by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server-8000}}/events/get-event-by-id/65c8d0174b259aec33970527",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"get-event-by-id",
+								"65c8d0174b259aec33970527"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete event",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{server-8000}}/events/delete-event/65e83c8c516658df012da7b0",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"delete-event",
+								"65e83c8c516658df012da7b0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update event details",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Modified Test Event Title",
+									"type": "text"
+								},
+								{
+									"key": "isEventOnline",
+									"value": "false",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{server-8000}}/events/update-event-details/65c8d0174b259aec33970527",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"update-event-details",
+								"65c8d0174b259aec33970527"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update event thumbnail",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "thumbnail",
+									"type": "file",
+									"src": "/C:/Users/HP/Downloads/pxfuel.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{server-8000}}/events/update-event-thumbnail/65c8d0174b259aec33970527",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"update-event-thumbnail",
+								"65c8d0174b259aec33970527"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deregister from event",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{server-8000}}/events/deregister-from-event/65c8d0174b259aec33970527",
+							"host": [
+								"{{server-8000}}"
+							],
+							"path": [
+								"events",
+								"deregister-from-event",
+								"65c8d0174b259aec33970527"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
