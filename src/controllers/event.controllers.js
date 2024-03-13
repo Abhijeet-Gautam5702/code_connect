@@ -629,12 +629,57 @@ const eventRegister = asyncHandler(async (req, res) => {
 
 // EVENT DE-REGISTER
 const eventDeregister = asyncHandler(async (req, res) => {
-  // Authorization check by Auth middleware
+  // Authorize the user by the Auth Middleware
+
   // Get userId from req.user
-  // Get eventId from req.params
-  // Check if the event exists
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.DEREGISTER_EVENT} | User-ID not received`,
+      500
+    );
+  }
+
+  // Get the eventId from the URL params
+  const eventId = req.params?.eventId;
+  if (!eventId) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.DEREGISTER_EVENT} | Event-ID not received`,
+      422
+    );
+  }
+
+  // Check if the event exists in the database
+  const isEventExists = await Event.findById(eventId);
+  if (!isEventExists) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.DEREGISTER_EVENT} | Event with given ID not found`,
+      404
+    );
+  }
+
   // Delete the appropriate "EventRegistration" document from the database
+  const deletedEventResigtration = await EventRegistration.findOneAndDelete({
+    eventId,
+    attendee: userId,
+  });
+  if (!deletedEventResigtration) {
+    throw new customApiError(
+      `${INITIAL_ERROR_MESSAGES.EVENTS.DEREGISTER_EVENT} | Some unknown error occured at our end | Event Registration Document could not be deleted from our database`,
+      500
+    );
+  }
+
   // Send success response to the user
+  res
+    .status(200)
+    .json(
+      new customApiResponse(
+        "User successfully de-registered from the event",
+        200,
+        {}
+      )
+    );
 });
 
 export {
